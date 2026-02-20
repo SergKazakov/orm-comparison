@@ -1,7 +1,7 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql"
 
 export default async () => {
-  const container = await new PostgreSqlContainer("postgres:18beta1-alpine")
+  const container = await new PostgreSqlContainer("postgres:18.2-alpine3.22")
     .withCopyFilesToContainer([
       {
         source: "./src/init.sql",

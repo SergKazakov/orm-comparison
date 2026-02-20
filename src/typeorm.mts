@@ -7,6 +7,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm"
+
+import { env } from "./env.mts"
 import { toCamelCase } from "./toCamelCase.mts"
 
 @Entity("users")
@@ -79,7 +81,7 @@ const ds = new DataSource({
   entities: [User, Post, Tag, PostTag],
   logging: true,
   type: "postgres",
-  url: process.env.DATABASE_URL,
+  url: env.DATABASE_URL,
 })
 
 await ds.initialize()

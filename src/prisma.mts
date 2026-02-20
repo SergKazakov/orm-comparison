@@ -1,14 +1,25 @@
+import { PrismaPg } from "@prisma/adapter-pg"
+import pg from "pg"
 import { $ } from "zx"
+
+import { env } from "./env.mts"
 
 await $`npx prisma generate`
 
 const { PrismaClient } = await import("./generated/prisma/client.js")
 
+const pool = new pg.Pool({ connectionString: env.DATABASE_URL })
+
 const prisma = new PrismaClient({
+  adapter: new PrismaPg(pool),
   log: [{ emit: "event", level: "query" }],
 }).$on("query", e => console.log(`${e.query}\n${e.params}`))
 
-export const cleanup = () => prisma.$disconnect()
+export const cleanup = async () => {
+  await prisma.$disconnect()
+
+  await pool.end()
+}
 
 export const createUser = () =>
   prisma.users.create({ data: { nickname: "foo" } })

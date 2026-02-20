@@ -3,6 +3,8 @@ import { drizzle } from "drizzle-orm/node-postgres"
 import * as t from "drizzle-orm/pg-core"
 import { Pool } from "pg"
 
+import { env } from "./env.mts"
+
 const withId = { id: t.integer().generatedAlwaysAsIdentity().primaryKey() }
 
 const withTimestamp = {
@@ -51,10 +53,7 @@ const postTags = t.pgTable("post_tags", {
     .primaryKey(),
 })
 
-const db = drizzle(process.env.DATABASE_URL as string, {
-  casing: "snake_case",
-  logger: true,
-})
+const db = drizzle(env.DATABASE_URL, { casing: "snake_case", logger: true })
 
 export const cleanup = async () => {
   if (db.$client instanceof Pool) {

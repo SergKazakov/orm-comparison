@@ -4,27 +4,30 @@
   },
   "prettier": {
     "arrowParens": "avoid",
+    "experimentalOperatorPosition": "start",
     "objectWrap": "collapse",
     "semi": false
   },
-  "devDependencies": {
-    "@testcontainers/postgresql": "^11.5.1",
-    "prettier": "^3.6.2",
-    "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
-  },
   "dependencies": {
-    "@mikro-orm/core": "^6.5.1",
-    "@mikro-orm/postgresql": "^6.5.1",
-    "@prisma/client": "^6.15.0",
-    "@sequelize/core": "^7.0.0-alpha.46",
-    "@sequelize/postgres": "^7.0.0-alpha.46",
-    "drizzle-orm": "^0.44.5",
+    "@mikro-orm/core": "^6.6.7",
+    "@mikro-orm/postgresql": "^6.6.7",
+    "@prisma/adapter-pg": "^7.4.1",
+    "@prisma/client": "^7.4.1",
+    "@sequelize/core": "^7.0.0-alpha.48",
+    "@sequelize/postgres": "^7.0.0-alpha.48",
+    "drizzle-orm": "^0.45.1",
+    "envalid": "^8.1.1",
     "knex": "^3.1.0",
-    "lodash": "^4.17.21",
-    "pg": "^8.16.3",
-    "prisma": "^6.15.0",
-    "typeorm": "^0.3.26",
-    "zx": "^8.8.1"
+    "lodash": "^4.17.23",
+    "pg": "^8.18.0",
+    "prisma": "^7.4.1",
+    "typeorm": "^0.3.28",
+    "zx": "^8.8.5"
+  },
+  "devDependencies": {
+    "@testcontainers/postgresql": "^11.12.0",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

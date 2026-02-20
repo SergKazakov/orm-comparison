@@ -1,4 +1,6 @@
 import { knex } from "knex"
+
+import { env } from "./env.mts"
 import { toCamelCase } from "./toCamelCase.mts"
 
 type WithId = { id: number }
@@ -7,8 +9,8 @@ type WithTimestamp = { created_at: Date; updated_at: Date }
 
 type User = WithId & WithTimestamp & { nickname: string }
 
-type Post = WithId &
-  WithTimestamp & { user_id: number; title: string; content: string }
+type Post = WithId
+  & WithTimestamp & { user_id: number; title: string; content: string }
 
 type Tag = WithId & WithTimestamp & { name: string }
 
@@ -28,7 +30,7 @@ declare module "knex/types/tables.js" {
 
 const db = knex({
   client: "pg",
-  connection: process.env.DATABASE_URL,
+  connection: env.DATABASE_URL,
   debug: true,
   postProcessResponse: result =>
     Array.isArray(result) ? result.map(toCamelCase) : toCamelCase(result),

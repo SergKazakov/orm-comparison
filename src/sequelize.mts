@@ -16,6 +16,8 @@ import {
 } from "@sequelize/core/decorators-legacy"
 import { PostgresDialect } from "@sequelize/postgres"
 
+import { env } from "./env.mts"
+
 @Table({ modelName: "user", tableName: "users" })
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   @Attribute(DataTypes.INTEGER)
@@ -100,7 +102,7 @@ const sequelize = new Sequelize({
   logQueryParameters: true,
   models: [User, Post, Tag, PostTag],
   noTypeValidation: true,
-  url: process.env.DATABASE_URL,
+  url: env.DATABASE_URL,
 })
 
 export const cleanup = () => sequelize.close()

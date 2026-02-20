@@ -7,6 +7,8 @@ import {
   sql,
 } from "@mikro-orm/postgresql"
 
+import { env } from "./env.mts"
+
 @Entity({ tableName: "users" })
 export class User {
   [OptionalProps]?: "createdAt" | "updatedAt"
@@ -82,11 +84,11 @@ export class PostTag {
 }
 
 const orm = await MikroORM.init({
-  user: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
-  host: process.env.DATABASE_HOST,
-  port: Number(process.env.DATABASE_PORT),
-  dbName: process.env.DATABASE_NAME,
+  user: env.DATABASE_USER,
+  password: env.DATABASE_PASSWORD,
+  host: env.DATABASE_HOST,
+  port: env.DATABASE_PORT,
+  dbName: env.DATABASE_NAME,
   entities: [User, Post, Tag, PostTag],
   debug: true,
   disableIdentityMap: true,
