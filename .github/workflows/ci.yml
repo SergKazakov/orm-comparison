@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: |
+          bun ci
+          bunx prisma generate
+      - parallel:
+          - run: bunx eslint
+          - run: bunx tsc
+          - run: bun run test

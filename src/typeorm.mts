@@ -4,15 +4,17 @@ import {
   CreateDateColumn,
   DataSource,
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from "typeorm"
+
+import { env } from "./env.mts"
 import { toCamelCase } from "./toCamelCase.mts"
 
 @Entity("users")
 class User extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryColumn({ type: "uuid", default: () => "uuidv7()" })
+  id: string
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date
@@ -20,14 +22,14 @@ class User extends BaseEntity {
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date
 
-  @Column({ type: "text" })
+  @Column({ type: "text", unique: true })
   nickname: string
 }
 
 @Entity("posts")
 class Post extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryColumn({ type: "uuid", default: () => "uuidv7()" })
+  id: string
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date
@@ -35,8 +37,8 @@ class Post extends BaseEntity {
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date
 
-  @Column({ name: "user_id", type: "int4" })
-  userId: number
+  @Column({ name: "user_id", type: "uuid" })
+  userId: string
 
   @Column({ type: "text" })
   title: string
@@ -47,8 +49,8 @@ class Post extends BaseEntity {
 
 @Entity("tags")
 class Tag extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryColumn({ type: "uuid", default: () => "uuidv7()" })
+  id: string
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date
@@ -62,11 +64,11 @@ class Tag extends BaseEntity {
 
 @Entity("post_tags")
 export class PostTag extends BaseEntity {
-  @Column({ name: "post_id", type: "int4", primary: true })
-  postId: number
+  @Column({ name: "post_id", type: "uuid", primary: true })
+  postId: string
 
-  @Column({ name: "tag_id", type: "int4", primary: true })
-  tagId: number
+  @Column({ name: "tag_id", type: "uuid", primary: true })
+  tagId: string
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date
@@ -79,57 +81,95 @@ const ds = new DataSource({
   entities: [User, Post, Tag, PostTag],
   logging: true,
   type: "postgres",
-  url: process.env.DATABASE_URL,
+  url: env.TYPEORM_DATABASE_URL,
 })
 
 await ds.initialize()
 
 export const cleanup = () => ds.destroy()
 
-export const createUser = async () => {
+export const createUser = async (nickname = Bun.randomUUIDv7()) => {
   const {
     raw: [row],
   } = await ds
     .createQueryBuilder()
     .insert()
     .into(User)
-    .values({ nickname: "foo" })
+    .values({ nickname })
     .returning("*")
     .execute()
 
   return toCamelCase(row)
 }
 
-export const updateUser = async (id: number) => {
-  const { affected } = await User.update(id, { nickname: "bar" })
+export const createUserOnConflictDoUpdate = async (nickname: string) => {
+  const { raw } = await ds
+    .createQueryBuilder()
+    .insert()
+    .into(User)
+    .values({ nickname })
+    .orUpdate(["nickname"], ["nickname"])
+    .returning("*")
+    .execute()
+
+  return raw.map((row: object) => toCamelCase(row))
+}
+
+export const createUserOnConflictDoNothing = async (nickname: string) => {
+  const { raw } = await ds
+    .createQueryBuilder()
+    .insert()
+    .into(User)
+    .values({ nickname })
+    .orIgnore()
+    .returning("*")
+    .execute()
+
+  return raw.map((row: object) => toCamelCase(row))
+}
+
+export const updateManyUsers = async (id: string) => {
+  const { affected } = await User.update(id, { nickname: Bun.randomUUIDv7() })
 
   return affected
 }
 
-export const updateAndReturnUser = async (id: number) => {
+export const updateManyUsersAndReturn = async (id: string) => {
   const { raw } = await ds
     .createQueryBuilder()
     .update(User)
-    .set({ nickname: "bar" })
+    .set({ nickname: Bun.randomUUIDv7() })
     .where({ id })
     .returning("*")
     .execute()
 
-  return raw.map(toCamelCase)
+  return raw.map((row: object) => toCamelCase(row))
 }
 
-export const deleteUser = async (id: number) => {
+export const deleteManyUsers = async (id: string) => {
   const { affected } = await User.delete(id)
 
   return affected
 }
 
+export const deleteManyUsersAndReturn = async (id: string) => {
+  const { raw } = await ds
+    .createQueryBuilder()
+    .delete()
+    .from(User)
+    .where({ id })
+    .returning("*")
+    .execute()
+
+  return raw.map((row: object) => toCamelCase(row))
+}
+
 export const findUsers = () =>
   User.find({ order: { id: "desc" }, take: 1, skip: 0 })
 
-export const findUser = (id: number) => User.findOne({ where: { id } })
+export const findUser = (id: string) => User.findOne({ where: { id } })
 
-export const createPost = async (userId: number) => {
+export const createPost = async (userId: string) => {
   const {
     raw: [row],
   } = await ds
@@ -157,7 +197,7 @@ export const createTag = async () => {
   return toCamelCase(row)
 }
 
-export const createPostTag = async (postId: number, tagId: number) => {
+export const createPostTag = async (postId: string, tagId: string) => {
   const {
     raw: [row],
   } = await ds

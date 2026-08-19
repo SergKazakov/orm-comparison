@@ -1,46 +1,78 @@
-import { $ } from "zx"
+import { PrismaPg } from "@prisma/adapter-pg"
+import pg from "pg"
 
-await $`npx prisma generate`
+import { env } from "./env.mts"
 
 const { PrismaClient } = await import("./generated/prisma/client.js")
 
+const pool = new pg.Pool({ connectionString: env.PRISMA_DATABASE_URL })
+
 const prisma = new PrismaClient({
+  adapter: new PrismaPg(pool),
   log: [{ emit: "event", level: "query" }],
 }).$on("query", e => console.log(`${e.query}\n${e.params}`))
 
-export const cleanup = () => prisma.$disconnect()
+export const cleanup = async () => {
+  await prisma.$disconnect()
 
-export const createUser = () =>
-  prisma.users.create({ data: { nickname: "foo" } })
+  await pool.end()
+}
 
-export const updateUser = async (id: number) => {
+export const createUser = (nickname = Bun.randomUUIDv7()) =>
+  prisma.users.create({ data: { nickname } })
+
+export const createUserOnConflictDoUpdate = (nickname: string) =>
+  prisma.users.upsert({
+    create: { nickname },
+    update: { nickname },
+    where: { nickname },
+  })
+
+export const createUserOnConflictDoNothing = (nickname: string) =>
+  prisma.users.createMany({ data: { nickname }, skipDuplicates: true })
+
+export const updateManyUsers = async (id: string) => {
   const { count } = await prisma.users.updateMany({
-    data: { nickname: "bar" },
+    data: { nickname: Bun.randomUUIDv7() },
     where: { id },
   })
 
   return count
 }
 
-export const updateAndReturnUser = (id: number) =>
-  prisma.users.updateManyAndReturn({ data: { nickname: "bar" }, where: { id } })
+export const updateManyUsersAndReturn = (id: string) =>
+  prisma.users.updateManyAndReturn({
+    data: { nickname: Bun.randomUUIDv7() },
+    where: { id },
+  })
 
-export const deleteUser = async (id: number) => {
+export const deleteManyUsers = async (id: string) => {
   const { count } = await prisma.users.deleteMany({ where: { id } })
 
   return count
 }
 
+export const deleteManyUsersAndReturn = (id: string) =>
+  prisma.$queryRaw<Awaited<ReturnType<typeof prisma.users.findMany>>>`
+    delete from users
+    where id = ${id}
+    returning
+      id,
+      created_at "createdAt",
+      updated_at "updatedAt",
+      nickname
+  `
+
 export const findUsers = () =>
   prisma.users.findMany({ orderBy: { id: "desc" }, take: 1, skip: 0 })
 
-export const findUser = (id: number) =>
+export const findUser = (id: string) =>
   prisma.users.findFirst({ where: { id } })
 
-export const createPost = (userId: number) =>
+export const createPost = (userId: string) =>
   prisma.posts.create({ data: { userId, title: "foo", content: "foo" } })
 
 export const createTag = () => prisma.tags.create({ data: { name: "foo" } })
 
-export const createPostTag = (postId: number, tagId: number) =>
+export const createPostTag = (postId: string, tagId: string) =>
   prisma.post_tags.create({ data: { postId, tagId } })

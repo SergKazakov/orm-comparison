@@ -6,37 +6,36 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model post_tags {
-  postId    Int      @map("post_id")
-  tagId     Int      @map("tag_id")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  postId    String   @db.Uuid                                            @map("post_id")
+  tagId     String   @db.Uuid                                            @map("tag_id")
+  createdAt DateTime @db.Timestamptz() @default(now())                   @map("created_at")
+  updatedAt DateTime @db.Timestamptz() @updatedAt                        @map("updated_at")
 
   @@id([postId, tagId])
 }
 
 model posts {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
-  userId    Int      @map("user_id")
+  id        String   @db.Uuid          @default(dbgenerated("uuidv7()")) @id
+  createdAt DateTime @db.Timestamptz() @default(now())                   @map("created_at")
+  updatedAt DateTime @db.Timestamptz() @updatedAt                        @map("updated_at")
+  userId    String   @db.Uuid                                            @map("user_id")
   title     String
   content   String
 }
 
 model tags {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  id        String   @db.Uuid          @default(dbgenerated("uuidv7()")) @id
+  createdAt DateTime @db.Timestamptz() @default(now())                   @map("created_at")
+  updatedAt DateTime @db.Timestamptz() @updatedAt                        @map("updated_at")
   name      String
 }
 
 model users {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
-  nickname  String
+  id        String   @db.Uuid          @default(dbgenerated("uuidv7()")) @id
+  createdAt DateTime @db.Timestamptz() @default(now())                   @map("created_at")
+  updatedAt DateTime @db.Timestamptz() @updatedAt                        @map("updated_at")
+  nickname  String   @unique
 }
